@@ -1,0 +1,8 @@
+$env:ADMIN_EMAIL = "admin@ejemplo.com"
+$env:ADMIN_NAME = "Administrador UANL"
+$env:ADMIN_PASSWORD = "administrador"
+
+npm run create-admin
+
+Remove-Item Env:ADMIN_PASSWORD
+npm start
