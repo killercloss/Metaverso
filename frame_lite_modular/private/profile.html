@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mi perfil · Metaverso UANL</title><style>
+:root{color-scheme:dark;font-family:system-ui,Arial,sans-serif;background:#101b2b;color:#e8eef8}body{margin:0 auto;padding:28px;max-width:840px}a{color:#92c9ff}h1{font-size:28px}.layout{display:grid;grid-template-columns:1fr 1fr;gap:20px}.card{background:#17263b;border:1px solid #34465e;border-radius:14px;padding:24px}label{display:block;margin:16px 0 5px}input,button{box-sizing:border-box;font:inherit;border-radius:8px;padding:10px}input:not([type=color]){width:100%;background:#0d1b2e;border:1px solid #52657e;color:white}input[type=color]{width:100%;height:54px;background:#0d1b2e;border:1px solid #52657e}button{background:#2674be;color:white;border:0;cursor:pointer;margin-top:18px}button:disabled{opacity:.5}p{color:#c5d3e6}.message{min-height:24px}.avatar{height:135px;display:flex;align-items:center;justify-content:center}.avatar svg{height:118px;width:118px}small{color:#aebdd1}@media(max-width:680px){.layout{grid-template-columns:1fr}body{padding:14px}}</style></head>
+<body><a href="/">Volver al metaverso</a><h1>Mi perfil y avatar</h1><p>Personaliza tu nombre visible y el color de tu avatar. El correo y el rol solo se administran desde el sistema.</p>
+<div class="layout"><section class="card"><h2>Personalización</h2><div class="avatar"><svg viewBox="0 0 100 110" aria-label="Vista previa del color del avatar"><circle cx="50" cy="21" r="17" fill="var(--avatar-color,#3da5ff)"/><rect x="26" y="41" width="48" height="41" rx="12" fill="var(--avatar-color,#3da5ff)"/><rect x="30" y="80" width="14" height="27" rx="6" fill="var(--avatar-color,#3da5ff)"/><rect x="56" y="80" width="14" height="27" rx="6" fill="var(--avatar-color,#3da5ff)"/></svg></div><form id="profileForm"><label for="name">Nombre visible</label><input id="name" minlength="2" maxlength="40" required autocomplete="nickname"><label for="color">Color del avatar</label><input id="color" type="color" value="#3da5ff"><p><small id="details"></small></p><button type="submit">Guardar personalización</button><p id="profileMessage" class="message" role="status"></p></form></section>
+<section class="card"><h2>Seguridad</h2><form id="passwordForm"><label for="currentPassword">Contraseña actual</label><input id="currentPassword" type="password" required autocomplete="current-password"><label for="newPassword">Nueva contraseña (mínimo 10 caracteres)</label><input id="newPassword" type="password" minlength="10" required autocomplete="new-password"><label for="confirmPassword">Confirmar nueva contraseña</label><input id="confirmPassword" type="password" minlength="10" required autocomplete="new-password"><button type="submit">Cambiar contraseña</button><p id="passwordMessage" class="message" role="status"></p><small>Al cambiar la contraseña se cerrarán todas tus sesiones y tendrás que iniciar sesión nuevamente.</small></form></section></div>
+<script>
+async function request(url,options={})
+{
+    const response=await fetch(url,{credentials:'same-origin',...options});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(result.error||'Error HTTP '+response.status);
+    return result;
+}
+const nameInput=document.getElementById('name');
+const colorInput=document.getElementById('color');
+colorInput.addEventListener('input',()=>document.documentElement.style.setProperty('--avatar-color',colorInput.value));
+request('/api/auth/me').then(({user})=>
+{
+    nameInput.value=user.name;
+    colorInput.value=user.avatarColor||'#3da5ff';
+    document.documentElement.style.setProperty('--avatar-color',colorInput.value);
+    document.getElementById('details').textContent=user.email+' · '+user.role;
+}).catch(()=>location.replace('/'));
+document.getElementById('profileForm').addEventListener('submit',async event=>
+{
+    event.preventDefault();const button=event.currentTarget.querySelector('button');button.disabled=true;
+    const message=document.getElementById('profileMessage');
+    try
+    {
+        await request('/api/auth/profile',{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:nameInput.value,avatarColor:colorInput.value})});
+        message.textContent='Perfil actualizado. Los cambios se verán al volver a entrar al mundo.';
+    }
+    catch(error){message.textContent=error.message;}
+    finally{button.disabled=false;}
+});
+document.getElementById('passwordForm').addEventListener('submit',async event=>
+{
+    event.preventDefault();const button=event.currentTarget.querySelector('button');button.disabled=true;
+    const message=document.getElementById('passwordMessage');
+    if(document.getElementById('newPassword').value!==document.getElementById('confirmPassword').value)
+    {message.textContent='Las contraseñas nuevas no coinciden';button.disabled=false;return;}
+    try
+    {
+        const result=await request('/api/auth/change-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({currentPassword:document.getElementById('currentPassword').value,newPassword:document.getElementById('newPassword').value})});
+        message.textContent=result.message;
+        event.currentTarget.reset();
+        setTimeout(()=>location.replace('/'),1800);
+    }
+    catch(error){message.textContent=error.message;button.disabled=false;}
+});
+</script></body></html>

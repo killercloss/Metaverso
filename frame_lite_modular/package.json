@@ -1,0 +1,17 @@
+{
+  "name": "frame-lite-modular",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "create-admin": "node create-admin.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "socket.io": "^4.8.1"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
+}

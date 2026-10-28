@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Administración · Metaverso UANL</title><style>
+:root{color-scheme:dark;font-family:system-ui,Arial,sans-serif;background:#101b2b;color:#e8eef8}body{margin:0 auto;padding:24px;max-width:1100px}h1{font-size:26px}p{color:#b9c8dc}table{border-collapse:collapse;width:100%;background:#17263b;border-radius:10px;overflow:hidden}td,th{padding:13px;border-bottom:1px solid #34465e;text-align:left}input,select,button{font:inherit;padding:8px;border-radius:6px}input,select{background:#0d1b2e;color:white;border:1px solid #52657e}button{background:#2674be;border:0;color:white;cursor:pointer}button:disabled{opacity:.5;cursor:wait}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin:20px 0}#message{min-height:25px}small{color:#aebdd1}@media(max-width:700px){table{display:block;overflow-x:auto}body{padding:12px}}</style></head>
+<body><h1>Administración de perfiles</h1><p>Metaverso UANL · Solo administradores. Las cuentas nuevas reciben el rol de oyente.</p><div class="toolbar"><a href="/" style="color:#91c7ff">Volver al metaverso</a><button id="refresh">Actualizar lista</button></div><p id="message" role="status"></p><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>Correo</th><th>Rol</th><th>Estado</th><th>Registro</th><th>Acción</th></tr></thead><tbody id="users"></tbody></table></div><p><small>Al cambiar el rol o deshabilitar una cuenta se revocan sus sesiones activas. No es posible deshabilitar al último administrador.</small></p>
+<script>
+const roles=['oyente','ponente','auxiliar','juez','administrador'];
+const tbody=document.getElementById('users');
+const message=document.getElementById('message');
+async function request(url,options={})
+{
+    const response=await fetch(url,{credentials:'same-origin',...options});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok) throw new Error(result.error||'Error HTTP '+response.status);
+    return result;
+}
+async function load()
+{
+    message.textContent='Cargando usuarios…';
+    tbody.replaceChildren();
+    try
+    {
+        const {users}=await request('/api/auth/users');
+        for(const user of users)
+        {
+            const tr=document.createElement('tr');
+            const cell=value=>{const td=document.createElement('td');td.textContent=value;tr.append(td);return td;};
+            cell(user.name);cell(user.email);
+            const roleCell=cell('');
+            const select=document.createElement('select');
+            for(const role of roles)
+            {
+                const option=document.createElement('option');option.value=role;option.textContent=role;option.selected=role===user.role;select.append(option);
+            }
+            roleCell.append(select);
+            const statusCell=cell('');
+            const enabled=document.createElement('input');enabled.type='checkbox';enabled.checked=user.enabled;enabled.setAttribute('aria-label','Cuenta habilitada');statusCell.append(enabled);
+            cell(user.createdAt||'');
+            const actionCell=cell('');
+            const save=document.createElement('button');save.textContent='Guardar';actionCell.append(save);
+            save.addEventListener('click',async()=>
+            {
+                if(!confirm(`¿Guardar cambios para ${user.email}?`)) return;
+                save.disabled=true;
+                try
+                {
+                    await request('/api/auth/users/'+encodeURIComponent(user.id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:select.value,enabled:enabled.checked})});
+                    message.textContent='Perfil actualizado: '+user.email;
+                    await load();
+                }
+                catch(error){message.textContent=error.message;save.disabled=false;}
+            });
+            tbody.append(tr);
+        }
+        message.textContent=`${users.length} perfiles encontrados`;
+    }
+    catch(error){message.textContent=error.message;}
+}
+document.getElementById('refresh').addEventListener('click',load);
+load();
+</script></body></html>
