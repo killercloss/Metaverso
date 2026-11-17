@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 const auth = require('./auth');
 const authRoutes = require('./auth-routes');
 
@@ -42,6 +43,11 @@ app.post('/api/votes', (req,res) =>
     catch(error) { res.status(400).json({error:error.message}); }
 });
 
+app.get(['/metaverso', '/metaverso/'], (req,res) =>
+{
+    res.sendFile(path.join(__dirname,'private','metaverse.html'));
+});
+
 app.get('/perfil', (req,res) =>
 {
     if(!authRoutes.current(req)) return res.redirect('/');
@@ -61,6 +67,22 @@ io.use((socket,next) =>
     if(!user) return next(new Error('Autenticación requerida'));
     socket.data.userId=user.id;
     next();
+});
+
+// Catálogo dinámico: basta copiar imágenes a public/sponsors/.
+// Solo se devuelven nombres de archivos de imagen (no rutas arbitrarias).
+app.get('/api/sponsors', (req, res) => {
+    const dir = path.join(__dirname, 'public', 'sponsors');
+    try {
+        const files = fs.readdirSync(dir, {withFileTypes:true})
+            .filter(entry => entry.isFile() && /\.(png|jpe?g|webp)$/i.test(entry.name))
+            .map(entry => entry.name)
+            .sort((a,b) => a.localeCompare(b, 'es'));
+        res.set('Cache-Control', 'no-store').json(files);
+    } catch(error) {
+        if(error.code === 'ENOENT') return res.json([]);
+        res.status(500).json({error:'No se pudo leer el catálogo'});
+    }
 });
 
 app.use(

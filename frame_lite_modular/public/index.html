@@ -1,98 +1,42 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width = device-width,initial-scale = 1" name="viewport"/>
-  <title>
-   Metaverso UANL
-  </title>
-  <script type="importmap">
-   {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}
-  </script>
-  <link rel="stylesheet" href="/css/styles.css">
- </head>
- <body>
-  <div id="app">
-  </div>
-  <div id="hud">
-   <div class="panel">
-    <b>Metaverso UANL</b>
-    <div id="accountInfo"></div>
-    <a id="adminLink" href="/admin" target="_blank" rel="noopener" hidden>Administrar usuarios</a>
-    <a href="/perfil" id="profileLink" style="color:#91c7ff">Mi perfil y avatar</a>
-    <button id="logoutButton" type="button">Cerrar sesión</button>
-    <div id="votePanel" style="margin-top:12px">
-      <b>Votación de salas</b>
-      <div id="voteStatus" role="status" aria-live="polite">Inicia sesión para votar</div>
-      <div id="voteChoices" style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:6px"></div>
-      <small>Un voto por cuenta. Puedes cambiarlo seleccionando otra sala.</small>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Metaverso UANL: una plataforma virtual tridimensional para congresos, conferencias y colaboración académica.">
+<title>Metaverso UANL | Experiencias académicas inmersivas</title>
+<link rel="stylesheet" href="/css/landing.css">
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<header class="site-header" id="inicio">
+  <nav class="nav wrap" aria-label="Navegación principal">
+    <a class="brand" href="#inicio" aria-label="Metaverso UANL, inicio"><span class="brand-mark">M<span>.</span></span><span>METAVERSO <strong>UANL</strong></span></a>
+    <button class="menu-toggle" type="button" aria-controls="navlinks" aria-expanded="false" aria-label="Abrir menú">☰</button>
+    <div class="navlinks" id="navlinks">
+      <a href="#inicio">Inicio</a><a href="#nosotros">Quiénes somos</a><a href="#objetivos">Objetivos</a><a href="#plataforma">La plataforma</a>
+      <a class="nav-cta" href="/metaverso">Entrar al metaverso <span aria-hidden="true">↗</span></a>
     </div>
-    <div class="row">
-     <button id="micButton">
-      Activar
-     </button>
-     <select id="voiceMode" disabled title="El canal se asigna automáticamente">
-      <option value="proximity">
-       Proximidad
-      </option>
-      <option value="global">
-       Global
-      </option>
-     </select>
+  </nav>
+</header>
+<main id="contenido">
+  <section class="hero section" aria-labelledby="hero-title">
+    <div class="hero-grid wrap">
+      <div class="hero-copy">
+        <span class="eyebrow"><span class="pulse"></span> EXPERIENCIAS ACADÉMICAS EN 3D</span>
+        <h1 id="hero-title">Un nuevo espacio para <em>conectar</em> el conocimiento.</h1>
+        <p>Congresos, conferencias y encuentros académicos en un entorno tridimensional donde las personas se reúnen, participan y colaboran desde cualquier lugar.</p>
+        <div class="actions"><a class="btn primary" href="/metaverso">Explorar el metaverso <span aria-hidden="true">↗</span></a><a class="btn secondary" href="#plataforma">Conocer la plataforma <span aria-hidden="true">↓</span></a></div>
+        <div class="hero-facts"><span><strong>06</strong> salas virtuales</span><span><strong>3D</strong> entorno inmersivo</span><span><strong>24/7</strong> acceso web*</span></div>
+      </div>
+      <div class="hero-visual" aria-label="Vista previa del entorno virtual"><div class="visual-top"><span class="live-dot"></span> VISTA DEL PROYECTO <span>METAVERSO UANL</span></div><img src="/images/imagen1.png" alt="Captura de una versión del metaverso con escenario tridimensional, pantallas y controles de usuario"><div class="visual-bottom"><span>Entorno virtual interactivo</span><span>01 / 01</span></div></div>
     </div>
-    <div class="status" id="voiceStatus">
-     Micrófono apagado
-    </div>
-     <div id="voiceMeter">
-      <div id="voiceMeterLevel"></div>
-     </div>
-    <div class="status" id="count">
-     Participantes: 1
-    </div>
-   </div>
-   <div class="help" id="help">
-    WASD: mover · Mouse: mirar · ESC: liberar
-   </div>
-   <div class="cross" id="crosshair">
-   </div>
-   <div id="chatPanel">
-    <div id="chatMessages">
-    </div>
-    <div id="chatControls">
-     <input autocomplete="off" id="chatInput" maxlength="300" placeholder="Escribe un mensaje..." type="text"/>
-     <button id="chatSend">
-      Enviar
-     </button>
-    </div>
-   </div>
-  </div>
-   <div id="mobileControls">
-    <div id="joystick">
-     <div id="joystickKnob"></div>
-    </div>
-    <div id="lookArea"></div>
-   </div>
-  <div id="enterScreen">
-   <div id="enterPanel">
-    <h1>
-     Metaverso UANL
-    </h1>
-    <p>Ingresa tus datos para acceder al mundo virtual.</p>
-    <div class="authTabs"><button id="tabLogin" type="button" class="selected">Iniciar sesión</button><button id="tabSignup" type="button">Crear cuenta</button></div>
-    <form id="loginForm">
-     <div id="signupName" hidden><label for="name">Nombre de usuario</label><input id="name" name="username" maxlength="40" minlength="2" placeholder="Tu nombre"></div>
-     <label for="email">Correo electrónico</label>
-     <input id="email" name="email" type="email" maxlength="254" required autocomplete="email" placeholder="correo@ejemplo.com">
-     <label for="password">Contraseña</label>
-     <input id="password" name="password" type="password" required minlength="10" autocomplete="current-password" placeholder="Contraseña (10+ caracteres)">
-     <div id="signupColor" hidden><label for="playerColor">Color del avatar</label><input id="playerColor" name="color" type="color" value="#3da5ff"></div>
-     <p id="authError" role="alert" aria-live="polite"></p>
-     <button id="enterWorld" type="submit">Iniciar sesión</button>
-    </form>
-   </div>
-  </div>
-  <script src="/socket.io/socket.io.js">
-  </script>
-  <script type="module" src="/js/app.js"></script>
- </body>
-</html>
+    <div class="hero-orbit" aria-hidden="true"></div>
+  </section>
+  <section class="section about" id="nosotros"><div class="wrap split"><div><span class="eyebrow">01 / QUIÉNES SOMOS</span><h2>Tecnología para acercar a nuestra comunidad.</h2></div><div><p><strong>Metaverso UANL</strong> es una plataforma virtual tridimensional e interactiva diseñada para facilitar congresos, conferencias y eventos académicos en un entorno digital inmersivo.</p><p>Conecta a estudiantes, docentes, ponentes y participantes mediante avatares y espacios virtuales compartidos, favoreciendo la interacción académica a distancia.</p><div class="note">Proyecto de plataforma académica en desarrollo.</div></div></div></section>
+  <section class="section goals" id="objetivos"><div class="wrap"><span class="eyebrow">02 / OBJETIVOS</span><div class="section-heading"><h2>Más posibilidades para aprender, compartir y participar.</h2><p>Diseñamos experiencias digitales que complementan los encuentros académicos tradicionales.</p></div><div class="goal-grid"><article class="goal"><span class="goal-num">01</span><div class="goal-icon">◎</div><h3>Conectar personas</h3><p>Facilitar encuentros entre estudiantes, docentes y ponentes sin depender de la ubicación física.</p></article><article class="goal"><span class="goal-num">02</span><div class="goal-icon">▣</div><h3>Compartir conocimiento</h3><p>Crear espacios para presentaciones, contenidos multimedia y actividades académicas.</p></article><article class="goal"><span class="goal-num">03</span><div class="goal-icon">◇</div><h3>Impulsar la participación</h3><p>Promover la interacción mediante chat, voz, avatares y mecanismos de votación.</p></article></div></div></section>
+  <section class="section platform" id="plataforma"><div class="wrap"><span class="eyebrow">03 / LA PLATAFORMA</span><div class="section-heading"><h2>Conoce el espacio virtual.</h2><p>Explora las funciones principales de un entorno pensado para eventos y encuentros académicos.</p></div><div class="gallery"><figure class="gallery-main"><div class="gallery-img"><img src="/images/imagen1.png" alt="Captura disponible de una versión previa del mundo 3D del Metaverso UANL" loading="lazy"></div><figcaption><strong>Exploración tridimensional</strong><span>Recorre el entorno y conoce las áreas de interacción desde el navegador.</span><small>Captura de referencia de una versión anterior del proyecto.</small></figcaption></figure><div class="gallery-side"><article class="feature-preview"><div class="feature-graphic"><span class="feature-symbol">◈</span><span>06 SALAS</span></div><div><h3>Salas de conferencias</h3><p>Espacios virtuales para actividades y presentaciones académicas.</p><small>Imagen de esta función pendiente de incorporar.</small></div></article><article class="feature-preview"><div class="feature-graphic feature-graphic-alt"><span class="feature-symbol">✦</span><span>PARTICIPA</span></div><div><h3>Avatares e interacción</h3><p>Personaliza tu perfil, conversa y participa en votaciones.</p><small>Imagen de esta función pendiente de incorporar.</small></div></article></div></div><div class="platform-cta"><div><span class="eyebrow">TU PRÓXIMO ENCUENTRO COMIENZA AQUÍ</span><h3>Entra y descubre el Metaverso UANL.</h3><p>Accede con tu cuenta o regístrate para participar.</p></div><a class="btn primary light" href="/metaverso">Ir al metaverso <span aria-hidden="true">↗</span></a></div></div></section>
+</main>
+<footer class="footer"><div class="wrap footer-grid"><div><div class="footer-brand">METAVERSO <strong>UANL</strong></div><p>Un espacio digital para conectar a la comunidad académica.</p></div><div><strong>Explora</strong><a href="#inicio">Inicio</a><a href="#nosotros">Quiénes somos</a><a href="#objetivos">Objetivos</a><a href="#plataforma">La plataforma</a></div><div><strong>Institución</strong><a href="https://www.uanl.mx/" target="_blank" rel="noopener noreferrer">Universidad Autónoma de Nuevo León ↗</a><a href="https://www.fcfm.uanl.mx/" target="_blank" rel="noopener noreferrer">Facultad de Ciencias Físico Matemáticas ↗</a></div></div><div class="wrap footer-bottom"><span>© <span id="year"></span> Metaverso UANL</span><span>* Disponibilidad sujeta a la operación del servidor.</span></div></footer>
+<script src="/js/landing.js" defer></script>
+</body></html>

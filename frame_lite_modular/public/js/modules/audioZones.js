@@ -7,10 +7,10 @@ export function createAudioZones()
     {
         if(!position) return 'pasillo';
         const {x, z} = position;
-        if(Math.abs(x) > 21 || Math.abs(z) > 27) return 'pasillo';
-        const threshold = previous.startsWith('salon-') ? 7.65 : 8.35;
+        if(Math.abs(x) > 27 || Math.abs(z) > 35) return 'pasillo';
+        const threshold = previous.startsWith('salon-') ? 9.65 : 10.35;
         if(Math.abs(z) <= threshold) return 'pasillo';
-        const column = Math.max(0, Math.min(2, Math.floor((x + 21) / 14)));
+        const column = Math.max(0, Math.min(2, Math.floor((x + 27) / 18)));
         return (z < 0 ? north : south)[column];
     }
     return {zoneAt};

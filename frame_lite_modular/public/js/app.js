@@ -14,7 +14,9 @@ import { createVideoSystem } from './modules/video.js';
 import { createMultiplayerSystem } from './modules/multiplayer.js';
 import { createKeyboardState, bindResize } from './modules/controls.js';
 import { createConferenceLayout } from './modules/conferenceLayout.js';
+import { createSponsorBanners } from './modules/sponsorBanners.js';
 import { createAudioZones } from './modules/audioZones.js';
+import { placeExhibitionModels } from './modules/exhibitionModels.js';
 
 window.FrameLiteModules =
 {
@@ -78,8 +80,8 @@ window.FrameLiteModules =
     const scene = new THREE.Scene();
 
     scene.background = new THREE.Color(0x20242b);
-    scene.fog = new THREE.Fog(0x20242b,18,70);
-    const camera = new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,200);
+    scene.fog = new THREE.Fog(0x20242b,90,310);
+    const camera = new THREE.PerspectiveCamera(70,innerWidth/innerHeight,.1,500);
     camera.position.set(0,1.7,5);
     const renderer = new THREE.WebGLRenderer({antialias:true});
     renderer.setSize(innerWidth,innerHeight);
@@ -412,13 +414,17 @@ window.FrameLiteModules =
     sun.castShadow = true;
     scene.add(sun);
 
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(80,80),new THREE.MeshStandardMaterial({color:0x6b7480,roughness:.95}));
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(500,500),new THREE.MeshStandardMaterial({color:0x6b7480,roughness:.95}));
     floor.rotation.x = -Math.PI/2;
+    // Terreno exterior bajo la losa: evita z-fighting con el piso interior.
+    floor.position.y = -0.35;
     floor.receiveShadow = true;
     scene.add(floor);
 
     // El edificio reemplaza la cuadrícula exterior.
     const conferenceLayout = createConferenceLayout(scene);
+    const sponsorBanners = createSponsorBanners(scene);
+    placeExhibitionModels(scene);
     const voteStatus=document.getElementById('voteStatus');
     const voteChoices=document.getElementById('voteChoices');
     let currentVote=null;
@@ -652,17 +658,9 @@ window.FrameLiteModules =
         );
     }
 
-    billboardLoader.load(
-        '/models/objetos/billboard/billdoard.fbx',
-        installBillboards,
-        undefined,
-        error =>
-        {
-            console.error('No se pudo cargar billdoard.fbx:', error);
-            videoScreen.position.set(-0.5, 2.5, -12);
-            scene.add(videoScreen);
-        }
-    );
+    // Galería de carteles: no se instancian los antiguos billboards 3D.
+    // Se conserva su lógica para futuras modalidades de evento.
+    // billboardLoader.load(...) desactivado intencionalmente.
 
     const HOUSE_PATH = '/models/objetos/house/house.fbx';
     const HOUSE_WIDTH = 15;
@@ -881,7 +879,11 @@ window.FrameLiteModules =
                     camera.position.z = previous.z;
                 }
             }
-            camera.position.y = HOUSE_PLAYER_HEIGHT;
+            // Altura de rampas y entrepisos, con subida gradual y sin teletransporte.
+            const feet = previous.y - HOUSE_PLAYER_HEIGHT;
+            const target = conferenceLayout.groundHeight(camera.position,feet);
+            const climb = Math.max(-0.65,Math.min(0.65,target-feet));
+            camera.position.y = feet + climb + HOUSE_PLAYER_HEIGHT;
             return;
         }
 
@@ -911,8 +913,10 @@ window.FrameLiteModules =
         }
 
         candidates = nearbyHouseColliders(camera.position);
-        camera.position.y = houseGroundAt(camera.position, previousFeetY, candidates)
-            + HOUSE_PLAYER_HEIGHT;
+        const houseGround = houseGroundAt(camera.position, previousFeetY, candidates) ?? 0;
+        const galleryGround = conferenceLayout.groundHeight(camera.position,previousFeetY);
+        const targetGround = Math.max(houseGround,galleryGround);
+        camera.position.y = previousFeetY + Math.max(-0.65,Math.min(0.65,targetGround-previousFeetY)) + HOUSE_PLAYER_HEIGHT;
     }
 
     const interactionRaycaster = new THREE.Raycaster();
@@ -1238,13 +1242,12 @@ window.FrameLiteModules =
         }
     }
 
-    loadPDFPlane();
+    // El PDF de demostración no se coloca en esta versión.
+    // loadPDFPlane();
 
-    const IMAGE_DISPLAYS =
-    [
-        { src: '/images/imagen1.png', x: -11.1, y: 7.7, z: -13.8, width: 5.2, height: 3.7, rotationY: 0 },
-        { src: '/images/imagen2.png', x: 12.8, y: 7.7, z: -13.8, width: 5.2, height: 3.7, rotationY: 0 }
-    ];
+    // Se desactivan las dos imágenes flotantes de demostración.
+    // El visor de imágenes permanece disponible para carteles futuros.
+    const IMAGE_DISPLAYS = [];
 
     const imageLoader = new THREE.TextureLoader();
     const imagePlanes = [];
@@ -2851,6 +2854,7 @@ let lastSend = 0;const SPEED = 5;
 function loop(){requestAnimationFrame(loop);
 
     const dt = Math.min(clock.getDelta(), .05);
+    sponsorBanners.update(dt);
     const d = SPEED * dt;
     let forward = 0;
     let right = 0;
